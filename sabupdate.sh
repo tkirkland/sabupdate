@@ -19,3 +19,13 @@ LATEST=$(cut -d/ -f8 "$URL")
 }
 
 # begin update
+echo "Version info:"
+echo 
+echo -n "Current version: "
+echo "$CURRENT"
+echo -n " Latest version: "
+echo "$LATEST"
+echo
+echo "Beginning update..."
+echo
+printf "Grabbing lattest Github source from the following URL:\n\"%s\"" "$URL"
