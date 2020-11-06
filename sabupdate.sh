@@ -11,7 +11,7 @@ FILENAME=$(cut -d / -f 9 <<< "$URL")
     exit 1
     }
 # get/set versions
-printf "One moment while version checking completes...\n"
+echo "One moment while version checking completes..."
 CURRENT=$("$SAB" --version | head -2 | cut -d- -f2 -s)
 LATEST=$(echo "$URL" | cut -d/ -f8)
 
@@ -29,5 +29,5 @@ echo "$LATEST"
 echo
 echo "Beginning update..."
 echo
-printf "Grabbing lattest Github source from the following URL into /tmp:\n\n%s" "\"$URL\""
+printf "Grabbing latest Github source from the following URL into /tmp:\n\n%s" "\"$URL\""
 curl -Lo "/tmp/$FILENAME" "$URL"
