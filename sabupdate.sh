@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
 TMP=$(mktemp -d)
