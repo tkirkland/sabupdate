@@ -1,43 +1,50 @@
 #!/usr/bin/env bash
-
+if [[ $UID -ne 0 ]]; then
+    sudo -p 'Restarting as root.  Password: ' bash "$0" "$@"
+    exit $?
+fi
 SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
+SERVICE="sabnzbd.service"
+SABPATH="$(dirname $SAB)"
 TMP=$(mktemp -d)
+OWNER="$(stat -c '%U' $SAB)"
+GROUP="$(stat -c '%G' $SAB)"
 REPO="https://api.github.com/repos/sabnzbd/sabnzbd/releases/latest"
 URL=$(curl -s $REPO | grep "browser_download_url.*src\.tar\.gz" | cut -d : -f 2,3 | tr -d \  | tr -d \")
 FILENAME=$(cut -d / -f 9 <<<"$URL")
 
-cleanup_error () {
+cleanup_error() {
     rm -rf "$TMP"
     exit 1
 }
-cleanup () {
+cleanup() {
     rm -rf "$TMP"
     exit 0
 }
-service () {
+chk_service() {
     case $1 in
         "start")
-            sudo systemctl is-active --quiet sabnzbd.service || {
-                sudo systemctl start sabnzbd.service
+            sudo systemctl is-active --quiet "$SERVICE" || {
+                sudo systemctl start "$SERVICE"
             }
-        ;;
+            ;;
         "stop")
-            sudo systemctl is-active --quiet sabnzbd.service && {
-                sudo systemctl stop sabnzbd.service
+            sudo systemctl is-active --quiet "$SERVICE" && {
+                sudo systemctl stop "$SERVICE"
             }
-        ;;
+            ;;
         "restart")
-            sudo systemctl is-active --quiet sabnzbd.service && {
+            sudo systemctl is-active --quiet "$SERVICE" && {
                 service stop
                 service start
             }
-            sudo systemctl stop sabnzbd.service
-        ;;
+            sudo systemctl stop "$SERVICE"
+            ;;
         *)
             echo "default"
-        ;;
+            ;;
     esac
-    
+
 }
 # test for file presence
 [[ ! -f "$SAB" ]] && {
@@ -51,7 +58,7 @@ LATEST=$(echo "$URL" | cut -d/ -f8)
 
 [[ "$LATEST" == "$CURRENT" ]] && {
     echo "No update needed! Congrats!"
-    exit 0
+    cleanup
 }
 
 # begin update
@@ -66,19 +73,37 @@ echo
 printf "Grabbing latest Github source from the following URL into /tmp:\n\n%s" "\"$URL\""
 echo
 curl -Lo "$TMP/$FILENAME" "$URL"
-cd "$TMP" || exit
+cd "$TMP" || cleanup_error
 echo
 echo -n "Extracting archive..."
 DIR=$(tar -xvzf "$FILENAME" | sed "s|/.*$||" | uniq)
 echo "  Done."
 echo
+# Check if sabservice is running if so exit
+sudo systemctl is-active --quiet "$SERVICE" && {
+    echo "Service \"$SERVICE\" appears active... Stopping before backup."
+    echo
+    chk_service stop "$SERVICE"
+}
 echo -n "Backing up existing install..."
-SABPATH="$(dirname $SAB)"
-cd "$SABPATH" || exit
-tar -zcf "sabbackup-$(date '+%Y-%m-%d').tar.gz" "." || {
+
+cd "$SABPATH" || cleanup_error
+tar -zcf "/usr/lib/sabnzbd/backups/sabbackup-$(date '+%Y-%m-%d').tar.gz" "." || {
     echo "Creating backup failed!"
     cleanup_error
 }
-echo "  Done."  
-# Check if sabservice is running if so exit
-sudo systemctl is-active --quiet sabnzbd.service && sudo systemctl stop sabnzbd.service
+echo "  Done."
+echo
+echo -n "Copying files to \"$SABPATH\"..."
+sudo rsync -au "$TMP/$DIR/" "$SABPATH" || cleanup_error
+echo " Done!"
+printf "\nUpdate finished!\n\nOLD: %s\nNEW: %s\n\n" "$CURRENT" "$LATEST"
+echo -n "Setting file permissions..."
+chown "$OWNER":"$GROUP" -R "$SABPATH"
+echo "Done!"
+echo -n "Restarting \"$SERVICE\"..."
+chk_service start "$SERVICE" || cleanup_error
+echo " Done!"
+echo
+echo "Update finished."
+cleanup
