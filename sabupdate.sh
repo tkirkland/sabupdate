@@ -3,6 +3,12 @@
 # Edit this to reflect SABnzb install path
 SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
 
+# test for file presence
+[[ ! -f "$SAB" ]] && {
+    echo "SABnzbd.py not found! Please edit line 4 of this file..."
+    exit 1
+} 
+
 # DO NOT EDIT BELOW
 if [[ $UID -ne 0 ]]; then
     sudo -p 'Restarting as root.  Password: ' bash "$0" "$@"
@@ -52,11 +58,7 @@ chk_service() {
     esac
 
 }
-# test for file presence
-[[ ! -f "$SAB" ]] && {
-    echo "SABnzbd.py not found! Please edit line 3 of this file..."
-    exit 1
-}
+
 # get/set versions
 echo "One moment while version checking completes..."
 CURRENT=$("$SAB" --version | head -2 | cut -d- -f2 -s)
