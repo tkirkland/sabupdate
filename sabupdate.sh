@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
+
+# Edit this to reflect SABnzb install path
+SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
+
+# DO NOT EDIT BELOW
 if [[ $UID -ne 0 ]]; then
     sudo -p 'Restarting as root.  Password: ' bash "$0" "$@"
     exit $?
 fi
-SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
+
+exec 1> >(logger -s -t "$(basename "$0")") 2>&1
 SERVICE="sabnzbd.service"
 SABPATH="$(dirname $SAB)"
 TMP=$(mktemp -d)
