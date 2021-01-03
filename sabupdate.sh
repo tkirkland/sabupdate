@@ -4,23 +4,26 @@
 SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
 
 # DO NOT EDIT BELOW
-IS_INTERACTIVE=0
+ACTIVE_TTY=0
 if [[ -t 0 ]]; then
-    IS_INTERACTIVE=1
+    ACTIVE_TTY=1
 fi
-
 output_msg() {
     logger -t "$(basename "$0")" "$1"
-    [[ $IS_INTERACTIVE != 0 ]] && {
-        [[ -n "$2" ]] && {
-            echo "$2"
-        }
+    [[ $ACTIVE_TTY != 0 ]] && {
+        [[ "$2" == "" && $# -gt 1 ]] && return
+        echo "${2-$1}"
     }
-    return
 }
 # test for file presence
 [[ ! -f "x$SAB" ]] && {
-    output_msg "SABnzbd.py not found" "SABnzbd.py not found! Please edit line 4 of this file..."
+    output_msg "1SABnzbd.py not found" "1SABnzbd.py not found! Please edit line 4 of this file..."
+    output_msg "2SABnzbd.py not found" ""
+    output_msg ""
+    output_msg "3SABnzbd.py not found"
+    output_msg "" ""
+    output_msg "" "5SABnzbd.py not found! Please edit line 4 of this file..."
+    output_msg
     exit 1
 }
 
@@ -29,6 +32,7 @@ if [[ $UID -ne 0 ]]; then
     exit $?
 fi
 
+#exec 1> >(logger -s -t "$(basename "$0")") 2>&1
 SERVICE="sabnzbd.service"
 SABPATH="$(dirname $SAB)"
 TMP=$(mktemp -d)
