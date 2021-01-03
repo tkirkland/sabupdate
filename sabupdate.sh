@@ -3,19 +3,32 @@
 # Edit this to reflect SABnzb install path
 SAB="/usr/lib/sabnzbd/bin/SABnzbd.py"
 
-# test for file presence
-[[ ! -f "$SAB" ]] && {
-    echo "SABnzbd.py not found! Please edit line 4 of this file..."
-    exit 1
-} 
-
 # DO NOT EDIT BELOW
+IS_INTERACTIVE=0
+if [[ -t 0 ]]; then
+    IS_INTERACTIVE=1
+fi
+
+output_msg() {
+    logger -t "$(basename "$0")" "$1"
+    [[ $IS_INTERACTIVE != 0 ]] && {
+        [[ -n "$2" ]] && {
+            echo "$2"
+        }
+    }
+    return
+}
+# test for file presence
+[[ ! -f "x$SAB" ]] && {
+    output_msg "SABnzbd.py not found" "SABnzbd.py not found! Please edit line 4 of this file..."
+    exit 1
+}
+
 if [[ $UID -ne 0 ]]; then
     sudo -p 'Restarting as root.  Password: ' bash "$0" "$@"
     exit $?
 fi
 
-exec 1> >(logger -s -t "$(basename "$0")") 2>&1
 SERVICE="sabnzbd.service"
 SABPATH="$(dirname $SAB)"
 TMP=$(mktemp -d)
