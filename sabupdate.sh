@@ -17,13 +17,7 @@ output_msg() {
 }
 # test for file presence
 [[ ! -f "x$SAB" ]] && {
-    output_msg "1SABnzbd.py not found" "1SABnzbd.py not found! Please edit line 4 of this file..."
-    output_msg "2SABnzbd.py not found" ""
-    output_msg ""
-    output_msg "3SABnzbd.py not found"
-    output_msg "" ""
-    output_msg "" "5SABnzbd.py not found! Please edit line 4 of this file..."
-    output_msg
+    output_msg "SABnzbd.py not found" "1SABnzbd.py not found! Please edit line 4 of this file..."
     exit 1
 }
 
@@ -32,7 +26,6 @@ if [[ $UID -ne 0 ]]; then
     exit $?
 fi
 
-#exec 1> >(logger -s -t "$(basename "$0")") 2>&1
 SERVICE="sabnzbd.service"
 SABPATH="$(dirname $SAB)"
 TMP=$(mktemp -d)
