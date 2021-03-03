@@ -16,8 +16,8 @@ output_msg() {
     }
 }
 # test for file presence
-[[ ! -f "x$SAB" ]] && {
-    output_msg "SABnzbd.py not found" "1SABnzbd.py not found! Please edit line 4 of this file..."
+[[ ! -f "$SAB" ]] && {
+    output_msg "SABnzbd.py not found" "SABnzbd.py not found! Please edit line 4 of this file..."
     exit 1
 }
 
