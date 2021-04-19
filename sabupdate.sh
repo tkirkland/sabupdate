@@ -106,7 +106,7 @@ echo " Done!"
 printf "\nUpdate finished!\n\nOLD: %s\nNEW: %s\n\n" "$CURRENT" "$LATEST"
 echo -n "Setting file permissions..."
 chown "$OWNER":"$GROUP" -R "$SABPATH"
-echo "Done!"
+echo " Done!"
 echo -n "Restarting \"$SERVICE\"..."
 chk_service start "$SERVICE" || cleanup_error
 echo " Done!"
